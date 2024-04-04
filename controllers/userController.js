@@ -17,7 +17,7 @@ const register = async (req, res) => {
     } catch (error) {
         console.log(error);
         res.status(500).send({
-            message: "Internal Server Error"
+            message: "User Exists with the given credential. Please login or Register with new credentials"
         })
     }
 }

@@ -15,39 +15,47 @@ const createPost = async (req, res) => {
     }
 }
 
-//Update Post
+// Update Post
 const updatePost = async (req, res) => {
-    if (req.body.userId === req.params.id) {
-        try {
-            const post = await postModel.findByIdAndUpdate(req.params.id, { $set: req.body }, { new: true })
-            res.status(200).send({
-                message: "Post update successfully",
-                post
-            })
+    try {
+        const post = await postModel.findById(req.params.id);
 
-
-        } catch (error) {
-            console.log(error);
-            res.status(500).send("Internal Server Error")
+        if (!post) {
+            return res.status(404).send("Post not found");
         }
-    } else {
-        res.status(400).send("You can update only your post")
+
+        if (post.username !== req.body.username) {
+            return res.status(403).send("You can only update your own post");
+        }
+
+        const updatedPost = await postModel.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
+        res.status(200).send({
+            message: "Post updated successfully",
+            updatedPost
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("Internal Server Error");
     }
 }
 
 //Delete Post
 const deletePost = async (req, res) => {
-    if (req.body.userId === req.params.id) {
-        try {
-            const post = await postModel.findByIdAndDelete(req.params.id)
-            res.status(200).send("Post Has Been Deleted Successfully")
-
-        } catch (error) {
-            console.log(error);
-            res.status(500).send("Internal Server Error")
+    try {
+        const post = await postModel.findById(req.params.id);
+        if (!post) {
+            return res.status(404).send("Post not found");
         }
-    } else {
-        res.status(400).send("You can delete only your post")
+        if (post.username === req.body.username) {
+            await post.deleteOne();
+            return res.status(200).send("Post has been deleted successfully");
+        } else {
+            return res.status(403).send("You can only delete your own post");
+        }
+    } catch (error) {
+        console.error(error);
+        return res.status(500).send("Internal Server Error");
     }
 }
 
